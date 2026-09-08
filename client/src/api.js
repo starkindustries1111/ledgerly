@@ -1,4 +1,5 @@
-const API_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '')
+const API_BASE = `${API_URL}/api`
 
 const csrfCookie = () => document.cookie.split('; ').find((cookie) => cookie.startsWith('ledgerly_csrf='))?.split('=').slice(1).join('=')
 
@@ -8,7 +9,7 @@ export async function request(path, options = {}) {
   const csrfToken = csrfCookie()
   let response
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetch(`${API_BASE}${path}`, {
       ...options,
       credentials: 'include',
       headers: { 'Content-Type': 'application/json', ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}), ...options.headers }
