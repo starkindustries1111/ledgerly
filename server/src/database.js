@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const localDatabaseUrl = `file:${path.join(__dirname, '../budgeting.db')}`
 const useNeon = Boolean(process.env.DATABASE_URL)
-const client = createClient({
+const client = useNeon ? null : createClient({
   url: process.env.TURSO_DATABASE_URL || localDatabaseUrl,
   ...(process.env.TURSO_AUTH_TOKEN ? { authToken: process.env.TURSO_AUTH_TOKEN } : {})
 })
