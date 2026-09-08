@@ -40,15 +40,24 @@ The API runs on `http://localhost:3001`. SQLite creates `server/budgeting.db` on
 
 ## Production deployment
 
-The production server serves the built frontend and API from one origin. Build with `npm run build`, then start with `npm start` from the project root.
+The backend can be deployed as a Vercel Node function. It uses Neon Postgres in production because Vercel function filesystems are not persistent. Neon has a $0 Free plan with storage and usage limits. The existing `server/budgeting.db` remains available for local development and backups.
 
-Set these server environment variables in the hosting provider:
+### Vercel backend
+
+Deploy the repository as a Vercel project. The `api/index.js` function imports the existing Express app. Add these Vercel environment variables:
 
 - `NODE_ENV=production`
-- `JWT_SECRET` to a new random value of at least 32 characters
-- `CLIENT_ORIGIN` to the public HTTPS URL of the app
-- `PORT` to the port supplied by the hosting provider
-- `DATABASE_PATH` to a file on a persistent mounted volume
+- `VERCEL=1`
+- `CLIENT_ORIGIN` set to the exact HTTPS Netlify site origin
+- `COOKIE_SAME_SITE=none`
+- `JWT_SECRET` set to a private random value of at least 32 characters
+- `DATABASE_URL` set to the private Neon Postgres connection string
 - `ERROR_MONITOR_URL` and `ADMIN_EMAILS` when needed
 
-Use persistent disk storage for `DATABASE_PATH` and schedule `npm run backup`; copy backups to off-host durable storage and verify restores regularly. The health check is `GET /api/health`. A reverse proxy must terminate HTTPS and forward `X-Forwarded-Proto: https`.
+The health check is `GET /api/health`. Do not set `DATABASE_PATH` on Vercel.
+
+### Netlify frontend
+
+Add `VITE_API_URL` to the Netlify build environment, set to the Vercel API origin with `/api`, for example `https://your-project.vercel.app/api`. Redeploy Netlify after adding it. The existing client sends credentials, so login, signup, logout, and session cookies continue to work across the two HTTPS origins.
+
+For local development, keep `DATABASE_PATH=./budgeting.db`, `NODE_ENV=development`, and `COOKIE_SAME_SITE=lax`; leave `DATABASE_URL` empty. Run `npm run dev` from the project root.
